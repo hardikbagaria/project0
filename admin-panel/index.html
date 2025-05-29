@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Token Manager</title>
+</head>
+<body>
+  <h1>Token Manager</h1>
+
+  <h3>Admin Credentials</h3>
+  <label for="adminUsername">Username:</label>
+  <input type="text" id="adminUsername" placeholder="admin">
+  <label for="adminPassword">Password:</label>
+  <input type="password" id="adminPassword" placeholder="password">
+  <hr>
+
+  <h3>Generate Token</h3>
+  <label for="maxProxies">Max Proxies: </label>
+  <input type="number" id="maxProxies" min="1" value="1">
+  <button id="generateBtn">Generate Token</button>
+  <div>
+    <textarea id="generatedToken" rows="4" cols="50" readonly></textarea>
+  </div>
+
+  <h3>Remove Token</h3>
+  <input type="text" id="removeTokenInput" placeholder="Enter token to remove">
+  <button id="removeBtn">Remove Token</button>
+  <div id="removeMessage"></div>
+
+  <script>
+    const generateTokenBtn = document.getElementById('generateBtn');
+    const generatedTokenTextArea = document.getElementById('generatedToken');
+    const removeTokenInput = document.getElementById('removeTokenInput');
+    const removeMessageDiv = document.getElementById('removeMessage');
+    const maxProxiesInput = document.getElementById('maxProxies');
+    const adminUsername = document.getElementById('adminUsername');
+    const adminPassword = document.getElementById('adminPassword');
+
+    function getAuthHeader() {
+      const username = adminUsername.value;
+      const password = adminPassword.value;
+      const credentials = btoa(`${username}:${password}`);
+      return `Basic ${credentials}`;
+    }
+
+    function generateToken() {
+      let token = '';
+      const chars = '0123456789abcdef';
+      for (let i = 0; i < 64; i++) {
+        token += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return token;
+    }
+
+    generateTokenBtn.addEventListener('click', () => {
+      const token = generateToken();
+      const maxProxies = maxProxiesInput.value;
+      const authHeader = getAuthHeader();
+
+      fetch('http://localhost:3000/add-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+        },
+        body: JSON.stringify({ token, maxProxies }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          generatedTokenTextArea.value = token;
+        } else {
+          alert('Failed to generate token: ' + (data.error || 'Unknown error'));
+        }
+      })
+      .catch(err => {
+        alert(`Error: ${err.message}`);
+      });
+    });
+
+    document.getElementById('removeBtn').addEventListener('click', () => {
+      const tokenToRemove = removeTokenInput.value;
+      const authHeader = getAuthHeader();
+
+      if (!tokenToRemove) {
+        removeMessageDiv.textContent = "Please enter a token to remove.";
+        removeMessageDiv.style.color = 'red';
+        return;
+      }
+
+      fetch('http://localhost:3000/revoke-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+        },
+        body: JSON.stringify({ token: tokenToRemove }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.revoked) {
+          removeMessageDiv.textContent = `Token ${tokenToRemove} removed successfully.`;
+          removeMessageDiv.style.color = 'green';
+        } else {
+          removeMessageDiv.textContent = `Failed to remove token ${tokenToRemove}.`;
+          removeMessageDiv.style.color = 'red';
+        }
+      })
+      .catch(err => {
+        removeMessageDiv.textContent = `Error: ${err.message}`;
+        removeMessageDiv.style.color = 'red';
+      });
+    });
+  </script>
+</body>
+</html>

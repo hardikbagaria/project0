@@ -1,0 +1,25 @@
+{
+  "type": "module",
+  "name": "itemframe-dupe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.4.21",
+    "axios": "^1.9.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "mineflayer": "^4.29.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "postcss": "^8.5.3",
+    "proxy-agent": "^6.5.0",
+    "socks": "^2.8.4",
+    "tailwindcss": "^4.1.6"
+  },
+  "description": ""
+}
